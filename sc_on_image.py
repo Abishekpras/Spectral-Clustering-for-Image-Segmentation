@@ -30,26 +30,24 @@ A = np.zeros((sh[0]**2,sh[0]**2))
 #distance threshold (k)
 k = 7
 #both sgima values choosen as 2
-for l in range(sh[1]):
-    for m in range(sh[0]):
+
+s = [i for i in range(k)]
+s.append(k)
+s.extend(s[-2::-1])
+#print(s)
+
+for l in range(sh[0]):
+    for m in range(sh[1]):
         current = a[(l,m)]
-        d=0
-        flag = 0
-        for j in range(m-k,m+k+1):
-            for i in range(l-d,l+d+1): 
-                #this makes sure that the indices are valid
+        cons = 0
+        for i in range(l-k,l+k+1):
+            for j in range(m-s[cons],m+s[cons]+1):
                 if (i,j) in a:
-                    #if the value is already calculated
                     if A[a[(i,j)],current] != 0:
                         A[current,a[(i,j)]] = A[a[(i,j)],current]
                     else:
-                        A[current,a[(i,j)]] = np.exp((-(img[l,m] - img[i,j])**2-((l-i)**2+(m-j)**2))/4.0)
-            if j == m:
-                flag = 1
-            if flag == 1:
-                d -= 1
-            else:
-                d += 1
+                        A[current,a[(i,j)]] = np.exp((-(img[l,m] - img[i,j])**2-((l-i)**2+(m-j)**2))/2.0)
+            cons += 1
 end = time.time()
 print("time taken:" + str(end-start)+"s")
 
