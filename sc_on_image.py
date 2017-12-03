@@ -40,7 +40,7 @@ for l in range(sh[0]):
         for i in range(l - k, l + k + 1):
             for j in range(m - k, m + k + 1):
                 dist = (l - i) ** 2 + (m - j) ** 2
-                if dist <= k**2:
+                if dist <= k**2 and (i,j) in a:
                     if A[a[(i, j)], current] != 0:
                         A[current, a[(i, j)]] = A[a[(i, j)], current]
                     else:
