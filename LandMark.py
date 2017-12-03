@@ -30,6 +30,7 @@ class LandMark:
         for i in range(length_m):
             arr = copy.copy(Z[i])
             arr.sort()
+            arr = arr[::-1]
             for j in range(r):
                 temp1[i] += arr[j]
         for i in range(length_m):
@@ -46,7 +47,6 @@ class LandMark:
         means, lables = vq.kmeans2(B[:,1:k],k)
         print(lables)
         #print(B.shape)
-
         # print(Z_head.shape)
         # print(A.shape)
         # print(S.shape)

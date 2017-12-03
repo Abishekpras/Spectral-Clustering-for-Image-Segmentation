@@ -11,7 +11,6 @@ from skimage.color import rgb2gray
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
-
 x, y = np.indices((100, 100))
 
 center1 = (28, 24)
