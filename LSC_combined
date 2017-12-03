@@ -1,0 +1,175 @@
+# coding : utf-8
+#author : GE
+
+import random
+import copy
+import numpy as np
+import math
+import scipy.cluster.vq as vq
+
+class LandMark:
+    def __init__(self):
+        self.matrix = np.eye(2)
+
+    def getmatrix(self, matrix, k, p):
+        self.matrix = matrix
+        length_m = matrix.shape[0]
+        indexes = random.sample(range(length_m), (int)(p))
+        U = []
+        for i in indexes:
+            U.append(copy.copy(self.matrix[i]))
+
+        length_u = len(U)
+        Z = np.zeros((length_m, length_u))
+        for i in range(length_m):
+            for j in range(length_u):
+                Z[i,j] = self.gaussian(self.matrix[i],U[j])
+
+        #temp1 = Z.sum(axis=1)
+        temp1 = np.zeros(length_m)
+        for i in range(length_m):
+            arr = copy.copy(Z[i])
+            arr.sort()
+            arr = arr[::-1]
+            for j in range(p):
+                temp1[i] += arr[j]
+        for i in range(length_m):
+            Z[i] = Z[i] / temp1[i]
+
+        temp2 = Z.sum(axis=0)
+        D = np.zeros((length_u, length_u))
+        for i in range(length_u):
+            D[i,i] = 1 / math.sqrt(temp2[i])
+        Z_head = np.dot(Z, D)
+        A, S, B = np.linalg.svd(np.transpose(Z_head),full_matrices=False)
+        B = np.transpose(B)
+
+        means, lables = vq.kmeans2(B[:,1:k],k)
+        return lables
+        #print(B.shape)
+        # print(Z_head.shape)
+        # print(A.shape)
+        # print(S.shape)
+        # print(B.shape)
+        #print(Z)
+        #temp = Z.sum(axis=1)
+        #print(temp)
+        #print(D)
+        #print(self.matrix)
+        #print(U)
+        #print(Z)
+        #print(np.dot(Z, U))
+        #W = np.dot(Z, Z.T)
+        #print(W)
+        #temp = W.sum(axis=1)
+        #print(temp)
+
+    def gaussian(self,x, u):
+        norm = np.sum(np.square(x - u))
+        return np.exp(-norm/2*1)
+
+    
+    
+    
+    
+print(__doc__)
+
+# Author: Gael Varoquaux <gael.varoquaux@normalesup.org>, Brian Cheung
+# License: BSD 3 clause
+
+import time
+
+import numpy as np
+import scipy as sp
+import scipy.cluster.vq as vq
+from numpy import linalg as la
+import matplotlib.pyplot as plt
+from PIL import Image
+from sklearn.feature_extraction import image
+from sklearn.cluster import spectral_clustering
+
+#opening the image
+img = Image.open('pika.png')
+
+#converting the image to grayscale
+img = img.convert('L')
+plt.imshow(img)
+plt.axis('off')
+plt.show()
+
+img = np.asarray(img).astype(float)/255.0
+print(img.shape)
+
+
+# Convert the image into a graph with the value of the gradient on the
+# edges.
+graph = image.img_to_graph(img)
+
+# Take a decreasing function of the gradient: an exponential
+# The smaller beta is, the more independent the segmentation is of the
+# actual image. For beta=1, the segmentation is close to a voronoi
+beta = 5
+eps = 1e-6
+graph.data = np.exp(-beta * graph.data / graph.data.std()) + eps
+
+t0 = time.time()
+'''
+A=graph
+D = np.diag(np.ravel(np.sum(A,axis=1)))
+'''
+
+'''
+from scipy.linalg import fractional_matrix_power
+temp = fractional_matrix_power(D, -0.5)
+rhs = np.matmul(temp,A)
+rhs = np.matmul(rhs,temp)
+print(rhs.shape)
+'''
+'''
+L = D - A
+
+# U has matrix of all eigenvectors arranged and l has sorted eigenvalues
+l, U = la.eigh(L)
+
+# Commented out code - Fiedler vector for 2-clustering alone
+'''
+'''
+f = U[:,1]
+labels = np.ravel(np.sign(f))
+k=2
+'''
+'''
+
+# Run K-Means on eigenvector matrix ( Other than 0th column )
+# Input k here to specify required number of clusters
+# means will have the list of K-means cluster centres
+# labels show the different cluster labels detected : Note that some times
+# K-Means doesn't converge and you might have 1 cluster lesser than 'K'
+k = 3
+means, labels = vq.kmeans2(U[:,1:k], k)
+
+'''
+k=3
+p=10000
+lm = LandMark()
+print(graph.shape)
+#print(graph)
+graph_array=graph.toarray()
+print(graph_array)
+# map = np.array([[1,2,3],[4,5,6],[7,8,9],[10,11,12],[13,14,15],[16,17,18],[19,20,21],[22,23,24]])
+labels=lm.getmatrix(graph_array, k, p)
+
+t1 = time.time()
+print(labels.shape)
+labels = labels.reshape(img.shape)
+
+plt.figure(figsize=(5, 5))
+plt.imshow(img, cmap=plt.cm.gray)
+my_color_book=['r','g','b','y','o']
+for l in range(k):
+    plt.contour(labels == l, contours=1,
+                colors=[my_color_book[l]])
+plt.xticks(())
+plt.yticks(())
+plt.title('Spectral clustering: %.2fs' %(t1 - t0))
+plt.show()
