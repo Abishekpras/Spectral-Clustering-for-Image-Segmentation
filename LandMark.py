@@ -25,6 +25,7 @@ class LandMark:
                 Z[i,j] = self.gaussian(self.matrix[i],U[j])
 
         temp1 = Z.sum(axis=1)
+
         for i in range(length_m):
             Z[i] = Z[i] / temp1[i]
 
@@ -32,15 +33,18 @@ class LandMark:
         D = np.zeros((length_u, length_u))
         for i in range(length_u):
             D[i,i] = 1 / math.sqrt(temp2[i])
+        Z_head = np.dot(Z, D)
+
+
         #print(Z)
         #temp = Z.sum(axis=1)
         #print(temp)
         #print(D)
-
-        Z = np.dot(Z, D)
-
+        #print(self.matrix)
+        #print(U)
         #print(Z)
-        W = np.dot(Z, Z.T)
+        print(np.dot(Z, U))
+        #W = np.dot(Z, Z.T)
         #print(W)
         #temp = W.sum(axis=1)
         #print(temp)
@@ -51,5 +55,5 @@ class LandMark:
 
 if __name__ == "__main__":
     lm = LandMark()
-    map = np.mat([[1,2,3],[4,5,6],[7,8,9],[10,11,12],[13,14,15]])
+    map = np.array([[1,2,3],[4,5,6],[7,8,9],[10,11,12],[13,14,15]])
     lm.getmatrix(map, 1, 0.7)
