@@ -24,7 +24,7 @@ from numpy import linalg as la
 import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn.feature_extraction import image
-from sklearn.cluster import spectral_clustering
+from sklearn.cluster import spectral_clustering as sklearn_spectral_clustering
 from scipy import spatial
 
 img_file = 'tiger.png'
@@ -183,6 +183,10 @@ def spectral_clustering( graph, num_clusters, clustering_type ):
     if( clustering_type == 'LANDMARK_BASED' ):
         return landmark_based_SC( A, k )
     
+    elif( clustering_type == 'sklearn_spectral_clustering' ):
+        return sklearn_spectral_clustering(graph, n_clusters=num_clusters,
+                                           assign_labels='kmeans', random_state=1)
+    
     D = np.diag( np.ravel( np.sum( A, axis=1 ) ) )
 
     L = Laplacian_graph( A, D, clustering_type )
@@ -253,7 +257,7 @@ def main():
 
     # Spectral clustering on the similarity graph to find a given number of clusters
 
-    for clustering_type in [ 'LANDMARK_BASED', 'unnormalized', 'random_walk_normalized']:
+    for clustering_type in [ 'LANDMARK_BASED', 'unnormalized', 'random_walk_normalized', 'sklearn_spectral_clustering']:
 
         t1 = time.time()
         print( 'Similarity Graph Shape - ' + str( similarity_graph.data.shape ) )
