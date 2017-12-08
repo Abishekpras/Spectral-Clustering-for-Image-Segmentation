@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn.feature_extraction import image
 from sklearn.cluster import spectral_clustering as sklearn_spectral_clustering
+from operator import itemgetter
 from scipy import spatial
 
 img_file = 'tiger.png'
@@ -39,10 +40,10 @@ def build_similarity_graph_from_img( img_file ):
     # CODE TO RESIZE ARRAY TO 30x30 approx.
     # FOR DEBUGGING PURPOSE ENABLE THIS CODE
     # --------------------------------------
-    basewidth = 30
-    wpercent = (basewidth/float(img.size[0]))
-    hsize = int((float(img.size[1])*float(wpercent)))
-    img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+    # basewidth = 30
+    # wpercent = (basewidth/float(img.size[0]))
+    # hsize = int((float(img.size[1])*float(wpercent)))
+    # img = img.resize((basewidth,hsize), Image.ANTIALIAS)
     # '''
     
     # Convert image to grayscale
@@ -107,23 +108,33 @@ def landmark_based_SC( X, k ):
     U = np.zeros((m,p))
     for i in range(p):
         U[:,i] = X[:,U_idx[i]]
-
+    print(U)
             
     # Number of nearest landmark points from the 'p' points of U that we need to
     # consider for calculating U_r
     r = int(p/2)
     xi = np.zeros((m,1))
     Z = np.zeros((p,n))
-            
+    
+    time_for_nw_regression = 0
+    t_start = time.time()
     for i in range(n):
                 
         # xi indicates every datapoint of matrix
         xi[:,0] = X[:,i]
                 
         # U_r_idx populates xi's 'r' nearest vector's(datapoints) indices in U
-        # TODO (TOBBY) : Make U_r_idx have the list of indices that correspond
-        #                to the sorted nearest neighbour column indices. Remove
-        #                KDTree implementation
+        
+        '''
+        U_dist_from_xi = np.zeros((p,2))
+        for j in range(p):
+            U_dist_from_xi[j][0] = int(j)
+            U_dist_from_xi[j][1] = np.linalg.norm(xi - U[:,j])
+        
+        sorted_U_dist_from_xi = np.array( sorted( U_dist_from_xi,key=itemgetter( 1 ) ) )
+        U_r_idx = (sorted_U_dist_from_xi[:r][:,0]).flatten().astype(int)
+        ''' 
+        
         tree = spatial.KDTree(np.transpose(U))
         U_r_idx = (tree.query(np.transpose(xi),k=r)[1]).flatten()
         
@@ -143,7 +154,9 @@ def landmark_based_SC( X, k ):
                 Z[j,i] = Z_list[ctr]/sum(Z_list)
                 ctr+=1
 
-
+    t_end = time.time()
+    time_for_nw_regression += (t_end-t_start)
+    
     assert( np.isnan(Z).any() == False )
     
     D = np.diag( np.ravel( np.sum( Z, axis=1 ) ) )
@@ -158,6 +171,8 @@ def landmark_based_SC( X, k ):
 
     # What B has right now would be the eigenvectors of (Z_hat * Z_hat.T)
     means, labels = vq.kmeans2(B[:,0:k],k)
+    
+    print('LandMark based time spent calculating nearest neighbour - ' + str(time_for_nw_regression) )
     return labels
 
 
