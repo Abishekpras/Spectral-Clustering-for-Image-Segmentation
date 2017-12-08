@@ -1,0 +1,23 @@
+Spectral Clustering is not complicated both on the side of model and realization, the only thing it needs is calculating the eigenvalues and the corresponding eigenvectors of a give matrix. Therefore, we can easily summary the process of spectral clustering :
+1.According to given data, we build a graph. Each vertex of the graph maps a data and we connect the vertexes, which are similar enough, and we denote the weight of the edges as the similarity between the data. Then, we can represent the graph with its adjacent matrix, W.
+2.Denoting degree matrix D, put the sum of each column of W in D diagonally. Then, let L = D - W.
+3.We calculate the first k eigenvalue of L and the corresponding eigenvectors.
+4.Arranging those k eigenvectors into a n*k matrix and treating each column as  a vector in a k-dim space, then we use K-means algorithm do the clustering.
+Now, we begin to talk about how spectral clustering works and the reason why we calculate eigenvalues and eigenvectors and why we use K-means on eigenvectors.
+First, let's discuss cut. Let A, B be two subsets of graph G, then the cut between A and B is defined as below:
+                     #####
+In the easiest situation, if we want to cut a graph G into two different parts, Minimum cut is to minimize cut(A,A_bar). However, there may exist isolated point in some situation. To deal with those situations, we introduce RatioCut:
+                     #####
+and NormalizedCut:
+                     #####
+Actually spectral clustering has a strong connection between RatioCut and NormalizedCut. The function, RatioCut(A,B), looks simple but its minimization is a NP-hard problem. We tend to do some transformation about it.
+Let V denote a set that contains all the vertexes of graph G. We define vector f as
+                     #####
+At first, we have defined L = D -W, which is called Graph Laplacian. L has a perfect properity that
+                     #####
+This equation is easy to prove. Show as below.
+                     #####
+Therefore, the minimization of RatioCut is equal to minimize f_prime*L*f, with the constrains ### and ###.
+Now is the time that we introduce Rayleigh quotient:
+                     #####
+
